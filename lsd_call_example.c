@@ -955,8 +955,8 @@ int main(int argc, char **argv)
   
   for(int ni =0; ni< n; ni++) {
     char str[50]={0};
-    // sprintf(str,"parallels/%d-.eps",ni);
-    // write_eps_BS(&allParallelLinesGrouped[ni],out, ni, dim, str, X, Y, 2.0, ni);  
+    sprintf(str,"parallels/%d-.eps",ni);
+    write_eps_BS(&allParallelLinesGrouped[ni],out, ni, dim, str, X, Y, 2.0, ni);  
   }
   for(int ni =0; ni< n; ni++) {
     char str[50]={0};
