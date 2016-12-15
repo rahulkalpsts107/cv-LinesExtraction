@@ -656,7 +656,7 @@ void findParallelLines(Array ** parallelLines , double * segs, int n, int X, int
       double Y4 = (double)Y - segs[inner*dim+3];
       //double Y4 = segs[inner*dim+3];
       
-      double thetaLine1 = 180 * atan2(Y4-Y4,X3-X3)/M_PI + 90;
+      double thetaLine1 = 180 * atan2(Y4-Y3,X4-X3)/M_PI + 90;
       int iTheta1 = thetaLine1; 
       if(iTheta1 >= 180) iTheta1 = (iTheta1 + 180)%360;
       double slope1 = (iTheta1/5.0 + 0.5) * bins;
@@ -710,10 +710,10 @@ void findParallelLines(Array ** parallelLines , double * segs, int n, int X, int
 void merge_lines(double merged_lines[][5] , int cur, int n , double * segments, int *lines, double *slopeOfLines, int w, int h)
 {
   int set = 0;
-  int t4=50;//overlap distance threshold
+  int t4=400;//overlap distance threshold
   int t5=5; //upto 5 degree variation
-  int t2=5; // distThreshold1
-
+  int t2=20; // distThreshold1
+  int t6=40; //length threshold
   for(int ni=0; ni < n; ni++)
   {
     int idx = lines[ni]; // get line index
@@ -766,10 +766,10 @@ void merge_lines(double merged_lines[][5] , int cur, int n , double * segments, 
               else
                 overlap=0.0;
             }
-
+            double length = segments[idx*7+6];
             //Now lets find perpendicular distance
             double perpend_dist = findDistance(&segments[cur*7+0], &segments[idx*7+0] , w, h);
-            if(overlap != -1 && fabs(slopeOfLines[cur]-slopeOfLines[idx]) <= t5  && perpend_dist < t2 && overlap <t4 )
+            if(/*overlap != -1 &&*/ fabs(slopeOfLines[cur]-slopeOfLines[idx]) <= t5  && perpend_dist < t2 /*&& overlap*/ <t4 && length >t6)
             { // it means the other merged linesegment is overshadowed by this so make it invalid
               if((merged_lines[cur][1] < segments[idx*7+1]) && (merged_lines[cur][3] < segments[idx*7+3])  )
               {//copy all the coordinates
@@ -955,8 +955,8 @@ int main(int argc, char **argv)
   
   for(int ni =0; ni< n; ni++) {
     char str[50]={0};
-    sprintf(str,"parallels/%d-.eps",ni);
-    write_eps_BS(&allParallelLinesGrouped[ni],out, ni, dim, str, X, Y, 2.0, ni);  
+     sprintf(str,"parallels/%d-.eps",ni);
+     write_eps_BS(&allParallelLinesGrouped[ni],out, ni, dim, str, X, Y, 2.0, ni);  
   }
   for(int ni =0; ni< n; ni++) {
     char str[50]={0};
@@ -971,15 +971,22 @@ int main(int argc, char **argv)
   double merged_lines[n][5]; //0 startx 1 starty 2 endx 3 endy 4 invalid
   for(int ni=0; ni < n; ni++)
     merged_lines[ni][4] = 1;//all are invalid by default
-  int lines_of_tower [] = {7,15,16,19,22,24,108,207,222,229,230,271,295,299,337,345,478,477,528,535,671,1002,1235};
-  for(int ni =0; ni< 23; ni++)
+  //int lines_of_tower [] = {7,15,16,19,22,24,108,207,222,229,230,271,295,299,337,345,478,477,528,535,671,1002,1235};
+  //for(int ni =0; ni< 23; ni++)
+  //printf("The slope is [%f] [%f] [%f] [%f] \n",slopeOfLines[7],slopeOfLines[15],slopeOfLines[16], slopeOfLines[19]);
+  //return EXIT_SUCCESS;
+  for(int ni =0; ni< n; ni++)
   {
-    if(slopeOfLines[lines_of_tower[ni]] <0)
+    if(slopeOfLines[ni] <0)
       continue;
-    int * parallel_lines = allSingleLinesGrouped[lines_of_tower[ni]].array;
-    qsort(parallel_lines, allSingleLinesGrouped[lines_of_tower[ni]].used , sizeof(int), cmpfunc3);//only y axis for now
-    merged_lines[lines_of_tower[ni]][4] = 0;//Make it valid
-    merge_lines(merged_lines, lines_of_tower[ni], allSingleLinesGrouped[lines_of_tower[ni]].used, out ,parallel_lines, slopeOfLines, X, Y); //force coersion here
+
+    //if(slopeOfLines[ni] > 700 && slopeOfLines[ni] < 1150)
+    { 
+      int * parallel_lines = allSingleLinesGrouped[ni].array;
+      qsort(parallel_lines, allSingleLinesGrouped[ni].used , sizeof(int), cmpfunc3);//only y axis for now
+      merged_lines[ni][4] = 0;//Make it valid
+      merge_lines(merged_lines, ni, allSingleLinesGrouped[ni].used, out ,parallel_lines, slopeOfLines, X, Y); //force coersion here
+    }
   }
 
   write_eps_BS1(merged_lines, n, dim, "final.eps", X,  Y);
