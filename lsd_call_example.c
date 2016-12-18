@@ -980,7 +980,7 @@ int main(int argc, char **argv)
     if(slopeOfLines[ni] <0)
       continue;
 
-    //if(slopeOfLines[ni] > 700 && slopeOfLines[ni] < 1150)
+    if(slopeOfLines[ni] > 700 && slopeOfLines[ni] < 1150)
     { 
       int * parallel_lines = allSingleLinesGrouped[ni].array;
       qsort(parallel_lines, allSingleLinesGrouped[ni].used , sizeof(int), cmpfunc3);//only y axis for now
